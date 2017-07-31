@@ -1,0 +1,81 @@
+package com.iitjobs.sparkapps
+
+import com.iitjobs.sparkapps.AirlineFlightUtils._
+
+import com.iitjobs.sparkapps.Utils._
+
+import com.google.common.collect.Table
+import org.apache.spark.broadcast.Broadcast
+
+import org.apache.log4j.{Level, Logger}
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * Created by bbejeck on 9/18/15.
+ *
+ */
+object SecondarySort {
+   def main(args: Array[String]) = {
+
+      //Grouping.runGroupingExample(args)
+      //AggregateByKey.runAggregateByKeyExample()
+      //CombineByKey.runCombineByKeyExample()
+      //StripFirstLines.stripLinesExample(args)
+      //Splitting.runSplitExample()
+     // MappingValues.runMappingValues()
+      //AirlineFlightPerformance.runInitialFlightPerformanceDataFrame(args(0))
+      runSecondarySortExample(args)
+
+
+
+  }
+
+  
+
+  def runSecondarySortExample(args: Array[String]): Unit = {
+
+    
+     val sc = new SparkContext(new SparkConf().setAppName("SecondarySorting").setMaster(args(0)))
+    val dataPath = args(1)
+   
+    val rawDataArray = sc.textFile("hdfs:/user/hadooptrainingiit/hareesh/inputs/input.txt").map(line => line.split(","))
+
+ 
+
+    
+
+    val keyValuedData = rawDataArray.map(arr => createKeyValueTuple(arr))
+    val keyedDataSorted = keyValuedData.repartitionAndSortWithinPartitions(new CustomPartitioner(5))
+
+ 
+    //printing out only done locally for demo purposes, usually write out to HDFS
+    keyedDataSorted.collect().foreach(println)
+    keyedDataSorted.saveAsTextFile("hdfs:/user/hadooptrainingiit/hareesh/output7")
+    keyedDataSorted.collect().foreach(println)
+  }
+
+ 
+
+  def createKeyValueTuple(data: Array[String]): (FlightKey, List[String]) = {
+    (createKey(data), listData(data))
+  }
+
+  def createKey(data: Array[String]): FlightKey = {
+    FlightKey(data(1), safeInt(data(2)))
+  }
+
+  def listData(data: Array[String]): List[String] = {
+    List(data(0),data(2))
+  }
+
+  /* Sample snippets for future use
+      //Example of what to do to strip off first line of file
+    val rawData = sc.textFile(args(0)).mapPartitionsWithIndex((i, line) => skipLines(i, line, 1))
+    //example of keyBy but retains entire array in value
+    val keyedByData = rawDataArray.keyBy(arr => createKey(arr))
+     val finalData = keyedDataSorted.map({ case (key, list) => DelayedFlight.fromKeyAndData(key, list) })
+    //finalData.collect().foreach(println)
+   */
+
+
+}
