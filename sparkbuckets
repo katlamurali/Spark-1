@@ -1,0 +1,5 @@
+case class employee(id:Int,salary:Int)
+val df = sc.textFile("hareesh/employees.txt").map(row=>row.split(',')).map(row => employee(row(0).toInt,row(1).toInt)).toDF()
+val df2 = df.withColumn("bucket",when($"salary"<=200000,"small").when($"salary"<=400000,"medium").otherwise("large"))
+val df3 = df2.groupBy("bucket").count
+df3.write.format("orc").mode("overwrite").saveAsTable("satishdb.sparkoutput")
