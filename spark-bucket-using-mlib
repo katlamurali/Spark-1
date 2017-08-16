@@ -1,0 +1,8 @@
+ case class Employee1(Employee_id:Int,Salary:Double);
+ val dfEmployees = sc.textFile("hareesh/employees.txt").map(_.split(",")).map(P=> Employee1(P(0).trim.toInt,P(1).trim.toInt)).toDF()
+ val splits = Array(Double.NegativeInfinity, 0,200001,400001,600001, Double.PositiveInfinity)
+ val bucketizer = new Bucketizer().setInputCol("Salary").setOutputCol("bucket").setSplits(splits)
+ val bucketeddata = bucketizer.transform(dfEmployees)
+ val df2 = bucketeddata.withColumn("buckets",when($"bucket"===1.0,"small").when($"bucket"===2.0,"medium").otherwise("large"))
+ val df3 = df2.groupBy("buckets").count
+ df3.write.format("orc").mode("overwrite").saveAsTable("satishdb.sparkoutput")
