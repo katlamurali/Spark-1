@@ -1,9 +1,9 @@
-mport org.apache.spark.sql.hive.HiveContext;
+import org.apache.spark.sql.hive.HiveContext;
 val hiveContext=new HiveContext(sc);
 val employees = hiveContext.sql("select * from satishdb.employees1112");
 val employees1 = employees.withColumn("min_snap_shot",to_date(unix_timestamp($"snap_shot","MMM-yyyy").cast("timestamp")))
 val employees2 = employees1.groupBy("fname","lname").agg(min($"min_snap_shot"))
 val employees3 = employees1.alias("a").join(employees2.alias("b"),employees1("fname")===employees2("fname") && employees1("lname")===employees2("lname") &&
 employees1("min_snap_shot")===employees2("min(min_snap_shot)")).select($"a.fname",$"a.lname",$"a.snap_shot")
- employees3.write.format("orc").mode("overwrite").saveAsTable("satishdb.sparkoutput")
+employees3.write.format("orc").mode("overwrite").saveAsTable("satishdb.sparkoutput")
 ~                                                                                           
